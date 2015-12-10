@@ -61,6 +61,10 @@ class Value:
     get_base = lambda self: self.__base
     
     def __setitem__(self, key, value):
+        start, stop, step = key.indices(self.__size) if type(key) is slice else (key, key + 1, 1)
+        if stop - start != len(value):
+            raise ValueError("'" + value + "' has a different length than the range given")
+
         new_value = list(self.get())
         new_value[key] = value
         self.set_value("".join(new_value), base = self.__base)
@@ -71,17 +75,15 @@ class Value:
         try:
             self.__value = value % (2 ** self.__size)
         except KeyError as key_error:
-            value_error = ValueError("'" + key_error.message + "' is not a supported base")
-            raise value_error
+            raise ValueError("'" + key_error.message + "' is not a supported base")
     
     set = set_value
 
     def set_base(self, base):
-        if base in self.__info:
-            self.__base = base
-        else:
-            value_error = ValueError("'" + base + "' is not a supported base")
-            raise value_error
+        if base not in self.__info:
+            raise ValueError("'" + base + "' is not a supported base")
+
+        self.__base = base
 
     def get_size(self, base=None):
         base = self.__base if not base else base
