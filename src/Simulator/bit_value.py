@@ -1,69 +1,153 @@
 #!/usr/bin/python
 """
-Bitvalue.py
+bit_value.py
 
 Created by Yuval Tzur on 08/12/2015.
 """
 
-import pprint
-
 
 class BitValue:
+    """ This class represents an integer value with the ability to manipulate it as a collection of bits"""
 
-    __info = {"bin": {"base": 2, "size_modifier": 1, "get": bin},
-                   "int": {"base": 10, "size_modifier": 1, "get": int},
-                   "hex": {"base": 16, "size_modifier": 4, "get": hex}}
+    # The info member holds a dictionary of commonly used configurations of different numerical bases
+    __info = {"bin": {"base": 2,  "size_modifier": 1},
+              "int": {"base": 10, "size_modifier": 1},
+              "hex": {"base": 16, "size_modifier": 4}}
+    __info["dec"] = __info["int"]
 
+    # Each object has a size member and a value member
+    # 'size' is the number of bits used
+    # 'value' is an integer value that will be converted to a string for other numerical bases
     def __init__(self, value=0, size=16, base="bin"):
         if type(size) is not int:
             raise TypeError("Size must be int")
 
         self.__size = size
+        self.__value = None
         self.set_value(value, base)
 
-    __lt__ = lambda self, x: self.__value < int(x)
-    __le__ = lambda self, x: self.__value <= int(x)
-    __eq__ = lambda self, x: self.__value == int(x)
-    __ne__ = lambda self, x: self.__value != int(x)
-    __ge__ = lambda self, x: self.__value >= int(x)
-    __gt__ = lambda self, x: self.__value > int(x)
+    # Comparison operators:
+    # Each operator compares the value to an integer representation of another object
+    def __lt__(self, other): return self.__value < int(other)
 
-    __abs__ = lambda self: BitValue(abs(self.__value))
-    __neg__ = lambda self: BitValue(-self.__value)
-    __pos__ = lambda self: BitValue(+self.__value)
-    __add__ = lambda self, x: BitValue(self.__value + int(x))
-    __sub__ = lambda self, x: BitValue(self.__value - int(x))
-    __mul__ = lambda self, x: BitValue(self.__value * int(x))
-    __mod__ = lambda self, x: BitValue(self.__value % int(x))
-    __div__ = lambda self, x: BitValue(self.__value / int(x))
-    __floordiv__ = lambda self, x: BitValue(self.__value // int(x))
-    __pow__ = lambda self, x: BitValue(self.__value ** int(x))
+    def __le__(self, other): return self.__value <= int(other)
 
-    __inv__ = lambda self: BitValue(~self.__value)
-    __invert__ = __inv__
-    __and__ = lambda self, x: BitValue(self.__value & int(x))
-    __or__ = lambda self, x: BitValue(self.__value | int(x))
-    __xor__ = lambda self, x: BitValue(self.__value ^ int(x))
-    __lshift__ = lambda self, x: BitValue(self.__value << x)
-    __rshift__ = lambda self, x: BitValue(self.__value >> x)
+    def __eq__(self, other): return self.__value == int(other)
 
-    __nonzero__ = lambda self: self.__value != 0
-    __bool__ = __nonzero__
+    def __ne__(self, other): return self.__value != int(other)
 
-    __str__ = lambda self: format(self.__value, "0" + str(self.__size) + "b")[-self.__size:]
-    __int__ = lambda self: self.__value
-    __hex__ = lambda self: format(self.__value, "0" + str(self.get_size("hex")) + "x")[-self.get_size("hex"):].upper()
-    __len__ = lambda self: self.__size
-    
-    __getitem__ = lambda self, key: self.__str__()[key]
+    def __ge__(self, other): return self.__value >= int(other)
 
-    bin = __str__
-    int = __int__
-    hex = __hex__
+    def __gt__(self, other): return self.__value > int(other)
 
-    get_value = lambda self: self.__value
-    get_size = lambda self, base="bin": (self.__size / self.__info[base]["size_modifier"]) + (self.__size % self.__info[base]["size_modifier"] != 0)
+    # Arithmetic operators:
+    # Each operator performs an arithmetic operation on an integer representation of another object (if applicable)
+    # and returns a new BitValue object (or self if an "in-place" version)
+    def __abs__(self): return BitValue(abs(self.__value))
 
+    def __neg__(self): return BitValue(-self.__value)
+
+    def __pos__(self): return BitValue(+self.__value)
+
+    def __add__(self, other): return BitValue(self.__value + int(other))
+
+    def __iadd__(self, other):
+        self.__value += int(other)
+        return self
+
+    def __sub__(self, other): return BitValue(self.__value - int(other))
+
+    def __isub__(self, other):
+        self.__value -= int(other)
+        return self
+
+    def __mul__(self, other): return BitValue(self.__value * int(other))
+
+    def __imul__(self, other):
+        self.__value *= int(other)
+        return self
+
+    def __mod__(self, other): return BitValue(self.__value % int(other))
+
+    def __imod__(self, other):
+        self.__value %= int(other)
+        return self
+
+    def __div__(self, other): return BitValue(self.__value / int(other))
+
+    def __idiv__(self, other):
+        self.__value /= int(other)
+        return self
+
+    def __floordiv__(self, other): return BitValue(self.__value // int(other))
+
+    def __ifloordiv__(self, other):
+        self.__value //= int(other)
+        return self
+
+    def __pow__(self, other): return BitValue(self.__value ** int(other))
+
+    def __ipow__(self, other):
+        self.__value **= int(other)
+        return self
+
+    # Bitwise operators:
+    # Each operator performs a bitwise operation on an integer representation of another object (if applicable)
+    # and returns a new BitValue object (or self if an "in-place" version)
+    def __inv__(self): return BitValue(~self.__value)
+
+    def __and__(self, other): return BitValue(self.__value & int(other))
+
+    def __iand__(self, other):
+        self.__value &= int(other)
+        return self
+
+    def __or__(self, other): return BitValue(self.__value | int(other))
+
+    def __ior__(self, other):
+        self.__value |= int(other)
+        return self
+
+    def __xor__(self, other): return BitValue(self.__value ^ int(other))
+
+    def __ixor__(self, other):
+        self.__value ^= int(other)
+        return self
+
+    def __lshift__(self, other): return BitValue(self.__value << other)
+
+    def __ilshift__(self, other):
+        self.__value <<= other
+        return self
+
+    def __rshift__(self, other): return BitValue(self.__value >> other)
+
+    def __irshift__(self, other):
+        self.__value >>= other
+        return self
+
+    # Check if value is zero for boolean expressions
+    def __nonzero__(self): return self.__value != 0
+
+    # Conversions:
+    def __str__(self): return format(self.__value, "0" + str(self.__size) + "b")[-self.__size:]
+
+    def __int__(self): return self.__value
+
+    def __hex__(self):
+        size = int(self.get_size("hex"))
+        return format(self.__value, "0" + str(size) + "x")[-size:].upper()
+
+    # Getters:
+    def __getitem__(self, key): return self.__str__()[key]
+
+    def get_value(self): return self.__value
+
+    def get_size(self, base="bin"):
+        size_modifier = int(self.__info[base]["size_modifier"])
+        return (self.__size / size_modifier) + (self.__size % size_modifier != 0)
+
+    # Setters:
     def __setitem__(self, key, value):
         start, stop, step = key.indices(self.__size) if type(key) is slice else (key, key + 1, 1)
         if stop - start != len(value):
@@ -71,7 +155,7 @@ class BitValue:
 
         new_value = list(self.bin())
         new_value[key] = value
-        self.set_value("".join(new_value), base = "bin")
+        self.set_value("".join(new_value), base="bin")
 
     def set_value(self, value, base="bin"):
         try:
@@ -90,11 +174,11 @@ class BitValue:
         self.__size = size
         self.set_value(self.__value)
 
-    def details(self):
-        print "Value: " + str(self.__value)
-        print "Size: " + str(self.__size)
-        print "Binary: " + self.bin()
-        print "Decimal: " + str(self.int())
-        print "Hexadecimal: " + self.hex()
-        print "Info:"
-        pprint.pprint(self.__info)
+    # Aliases:
+    __invert__ = __inv__
+    __bool__ = __nonzero__
+    __len__ = get_size
+
+    bin = __str__
+    int = __int__
+    hex = __hex__
