@@ -18,7 +18,7 @@ class BitValue:
     # Each object has a size member and a value member
     # 'size' is the number of bits used
     # 'value' is an integer value that will be converted to a string for other numerical bases
-    def __init__(self, value=0, size=16, base="bin"):
+    def __init__(self, value=0, size=16, base="int"):
         if type(size) is not int:
             raise TypeError("Size must be int")
 
@@ -28,99 +28,76 @@ class BitValue:
 
     # Comparison operators:
     # Each operator compares the value to an integer representation of another object
-    def __lt__(self, other): return self.__value < int(other)
+    def __lt__(self, other): return self.int() < int(other)
 
-    def __le__(self, other): return self.__value <= int(other)
+    def __le__(self, other): return self.int() <= int(other)
 
-    def __eq__(self, other): return self.__value == int(other)
+    def __eq__(self, other): return self.int() == int(other)
 
-    def __ne__(self, other): return self.__value != int(other)
+    def __ne__(self, other): return self.int() != int(other)
 
-    def __ge__(self, other): return self.__value >= int(other)
+    def __ge__(self, other): return self.int() >= int(other)
 
-    def __gt__(self, other): return self.__value > int(other)
+    def __gt__(self, other): return self.int() > int(other)
 
     # Arithmetic operators:
     # Each operator performs an arithmetic operation on an integer representation of another object (if applicable)
     # and returns a new BitValue object (or self if an "in-place" version)
-    def __abs__(self): return BitValue(abs(self.__value))
+    def __abs__(self):
+        value = self.__value if self[0] == '0' else -self.__value
+        return BitValue(value, self.__size)
 
-    def __neg__(self): return BitValue(-self.__value)
+    def __neg__(self): return BitValue(-self.int(), self.__size)
 
-    def __pos__(self): return BitValue(+self.__value)
+    def __pos__(self): return BitValue(self.int(), self.__size)
 
-    def __add__(self, other): return BitValue(self.__value + int(other))
+    def __add__(self, other): return BitValue(self.int() + int(other), size=self.__size)
 
-    def __iadd__(self, other):
-        self.__value += int(other)
-        return self
+    def __sub__(self, other): return BitValue(self.int() - int(other), size=self.__size)
 
-    def __sub__(self, other): return BitValue(self.__value - int(other))
+    def __mul__(self, other): return BitValue(self.int() * int(other), size=self.__size)
 
-    def __isub__(self, other):
-        self.__value -= int(other)
-        return self
+    def __mod__(self, other): return BitValue(self.int() % int(other), size=self.__size)
 
-    def __mul__(self, other): return BitValue(self.__value * int(other))
+    def __div__(self, other): return BitValue(self.int() / int(other), size=self.__size)
 
-    def __imul__(self, other):
-        self.__value *= int(other)
-        return self
+    def __floordiv__(self, other): return BitValue(self.int() // int(other), size=self.__size)
 
-    def __mod__(self, other): return BitValue(self.__value % int(other))
-
-    def __imod__(self, other):
-        self.__value %= int(other)
-        return self
-
-    def __div__(self, other): return BitValue(self.__value / int(other))
-
-    def __idiv__(self, other):
-        self.__value /= int(other)
-        return self
-
-    def __floordiv__(self, other): return BitValue(self.__value // int(other))
-
-    def __ifloordiv__(self, other):
-        self.__value //= int(other)
-        return self
-
-    def __pow__(self, other): return BitValue(self.__value ** int(other))
-
-    def __ipow__(self, other):
-        self.__value **= int(other)
-        return self
+    def __pow__(self, other):
+        if int(other) < 0:
+            raise ValueError("Exponent must be a positive integer")
+        return BitValue(self.int() ** int(other), size=self.__size)
 
     # Bitwise operators:
     # Each operator performs a bitwise operation on an integer representation of another object (if applicable)
     # and returns a new BitValue object (or self if an "in-place" version)
-    def __inv__(self): return BitValue(~self.__value)
+    def __inv__(self): return BitValue(~self.__value, size=self.__size)
 
-    def __and__(self, other): return BitValue(self.__value & int(other))
+    def __and__(self, other): return BitValue(self.__value & int(other), size=self.__size)
 
     def __iand__(self, other):
         self.__value &= int(other)
         return self
 
-    def __or__(self, other): return BitValue(self.__value | int(other))
+    def __or__(self, other): return BitValue(self.__value | int(other), size=self.__size)
 
     def __ior__(self, other):
         self.__value |= int(other)
         return self
 
-    def __xor__(self, other): return BitValue(self.__value ^ int(other))
+    def __xor__(self, other): return BitValue(self.__value ^ int(other), size=self.__size)
 
     def __ixor__(self, other):
         self.__value ^= int(other)
         return self
 
-    def __lshift__(self, other): return BitValue(self.__value << other)
+    def __lshift__(self, other): return BitValue(self.__value << other, size=self.__size)
 
     def __ilshift__(self, other):
         self.__value <<= other
         return self
 
-    def __rshift__(self, other): return BitValue(self.__value >> other)
+    def __rshift__(self, other): return BitValue(self.__value >> other, size=self.__size)
 
     def __irshift__(self, other):
         self.__value >>= other
@@ -132,7 +109,7 @@ class BitValue:
     # Conversions:
     def __str__(self): return format(self.__value, "0" + str(self.__size) + "b")[-self.__size:]
 
-    def __int__(self): return self.__value
+    def __int__(self): return self.__value if self[0] == '0' else int(~self + 1) * -1
 
     def __hex__(self):
         size = int(self.get_size("hex"))
